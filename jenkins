@@ -1,32 +1,36 @@
-pipeline{
+pipeline {
     agent any
-    environment{
-        dockerImage =''
-        registry = 'nisulasanhidu/image01'
-        registryCridential = 'e133ee5b-2398-42ab-891f-704768b473e4'
+
+    environment {
+        IMAGE_NAME = 'nisulasanhidu/image01'
+        DOCKER_CREDENTIALS = 'e133ee5b-2398-42ab-891f-704768b473e4'
     }
-    stages{
-        stage('gitpull')
-        {
-            steps{
-                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/kasunkosala/devops-cicd.git/']])
+
+    stages {
+
+        stage('Git Pull') {
+            steps {
+                git branch: 'master',
+                    url: 'https://github.com/kasunkosala/devops-cicd.git'
             }
         }
-        stage('build docker image'){
-            steps{
-                script{
-                    dockerImage = docker.build registry
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
-        stage('upload docker image'){
-            steps{
-                script{
-                    docker.withRegistry('',registryCridential){
-                        dockerImage.push()
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
+                        dockerImage.push('latest')
                     }
                 }
-                
             }
         }
-        
+    }
+}
